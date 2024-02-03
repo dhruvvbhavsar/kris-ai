@@ -1,5 +1,5 @@
 import OpenAI from "openai";
-import { OpenAIStream, StreamingTextResponse } from "ai";
+import { OpenAIStream } from "ai";
 import { headers } from "next/headers";
 import { Ratelimit } from "@upstash/ratelimit"; // for deno: see above
 import { Redis } from "@upstash/redis";
@@ -34,7 +34,7 @@ export async function POST(req: Request) {
   const rl = await ratelimit.limit(ip);
 
   if (!rl.success) {
-    return Response.json("God is sleeping, Come back later.");
+    return Response.json("Dear Child. Take some rest, Come back later.");
   }
 
   //   Request the OpenAI API for the response based on the prompt
@@ -62,5 +62,5 @@ export async function POST(req: Request) {
 
   const stream = OpenAIStream(response);
 
-  return new StreamingTextResponse(stream);
+  return new Response(stream);
 }
