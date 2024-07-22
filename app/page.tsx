@@ -19,7 +19,7 @@ export default function Home() {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        prompt,
+        prompt: input,
       }),
     });
 
@@ -78,7 +78,7 @@ export default function Home() {
             <>
               <button
                 className="bg-black rounded-xl text-white font-medium px-4 py-2 sm:mt-10 mt-8 hover:bg-black/80 w-full"
-                disabled
+                disabled={input.length < 8}
               >
                 <LoadingDots color="white" style="large" />
               </button>
