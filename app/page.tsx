@@ -1,50 +1,16 @@
 "use client";
 import LoadingDots from "@/components/LoadingDots";
 import ResizablePanel from "@/components/ResizablePanel";
+import { useCompletion } from "ai/react";
 import { AnimatePresence, motion } from "framer-motion";
 import Head from "next/head";
-import { useCompletion } from "ai/react";
-import { useState } from "react";
+import ReactMarkdown from 'react-markdown';
 
 export default function Home() {
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [input, setInput] = useState<string>("");
-  const [result, setResult] = useState<string>("");
-  async function handleSubmit() {
-    setResult("")
-    setIsLoading(true);
-    const response = await fetch("/api/", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        prompt: input,
-      }),
+  const { isLoading, input, setInput, handleSubmit, completion } =
+    useCompletion({
+      api: "/api/chat",
     });
-
-    if (!response.ok) {
-      throw new Error(response.statusText);
-    }
-
-    // This data is a ReadableStream
-    const data = response.body;
-    if (!data) {
-      return;
-    }
-
-    const reader = data.getReader();
-    const decoder = new TextDecoder();
-    let done = false;
-
-    while (!done) {
-      const { value, done: doneReading } = await reader.read();
-      done = doneReading;
-      const chunkValue = decoder.decode(value);
-      setResult((prev) => prev + chunkValue);
-    }
-    setIsLoading(false)
-  }
   return (
     <div className="sm:flex mx-auto flex-col items-center justify-center py-2 min-h-screen">
       <Head>
@@ -69,7 +35,7 @@ export default function Home() {
             <button
               type="submit"
               onClick={handleSubmit}
-              disabled={input.length < 8}
+              disabled={input.length < 4}
               className="bg-black rounded-xl disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-medium px-4 py-2 sm:mt-10 mt-8  w-full"
             >
               Ask
@@ -89,7 +55,7 @@ export default function Home() {
         <ResizablePanel>
           <AnimatePresence mode="wait">
             <motion.div className="space-y-10 my-10">
-              {result && (
+              {completion ? (
                 <>
                   <div>
                     <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mx-auto text-center">
@@ -98,11 +64,13 @@ export default function Home() {
                   </div>
                   <div className="space-y-8 flex flex-col items-center mx-4">
                     <div className="bg-white rounded-xl shadow-md p-4 w-full overflow-y-auto">
-                      <p className="text-sm text-pretty text-left">{result}</p>
+                      <div className="text-sm text-pretty text-left">
+                        <ReactMarkdown>{completion}</ReactMarkdown>
+                      </div>
                     </div>
                   </div>
                 </>
-              )}
+              ) : null}
             </motion.div>
           </AnimatePresence>
         </ResizablePanel>
